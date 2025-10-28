@@ -1,0 +1,14 @@
+# Ignore Windows system files
+Thumbs.db
+Desktop.ini
+
+# Ignore raw email files
+*.eml
+*.log
+*.csv
+
+# Ignore temp files
+*.tmp
+
+# Ignore Python cache (future-safe)
+__pycache__/
