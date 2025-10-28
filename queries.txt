@@ -1,0 +1,32 @@
+# ===== Field Extraction (Phishing Emails)
+| rex field=_raw "From:\s*(?<from>[^<\r\n]+)"
+| rex field=_raw "To:\s*(?<to>[^<\r\n]+)"
+| rex field=_raw "(?i)Subject:\s*(?<subject>[^\r\n]+)"
+
+# ===== Phishing Email Overview (Table)
+index=main sourcetype=generic_email
+| rex field=_raw "From:\s*(?<from>[^<\r\n]+)"
+| rex field=_raw "To:\s*(?<to>[^<\r\n]+)"
+| rex field=_raw "(?i)Subject:\s*(?<subject>[^\r\n]+)"
+| table _time from to subject
+| sort - _time
+
+# ===== Top Email Senders (Bar Chart)
+index=main sourcetype=generic_email earliest=-7d
+| rex field=_raw "From:\s*(?<from>[^<\r\n]+)"
+| stats count by from
+| sort - count
+| head 10
+
+# ===== Top Suspicious Subjects (Pie Chart)
+index=main sourcetype=generic_email earliest=-7d
+| rex field=_raw "(?i)Subject:\s*(?<subject>[^\r\n]+)"
+| stats count by subject
+| sort - count
+| head 10
+
+# ===== Suspicious Keyword Search (Alert Logic)
+index=main sourcetype=generic_email earliest=-24h
+| rex field=_raw "(?i)Subject:\s*(?<subject>[^\r\n]+)"
+| search subject="*verify*" OR subject="*urgent*" OR subject="*password*" OR subject="*account*"
+| stats count by subject
