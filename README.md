@@ -1,179 +1,136 @@
-\# Phishing Email Detection \& Analysis — Splunk Home Lab
+Phishing Email Detection Lab in Splunk (Hands-On SOC Analyst Project)
+
+Objective
+
+Detect phishing email patterns by ingesting and analyzing sample email headers in Splunk, extracting important fields, and building a SOC investigation dashboard.
 
 
+---
 
-\*\*Author:\*\* Pradeep Kumar  
+Environment Setup
 
-\*\*Project Type:\*\* SOC Analyst Home Lab  
+Windows 11 VM — Splunk host and analysis machine
 
-\*\*Tools:\*\* Splunk, Windows VM, Sysmon, Sample Email Logs  
+Splunk Enterprise — Installed and running locally (free trial mode)
 
-\*\*Date:\*\* 2025
+Sysmon — Installed previously (not required for this lab)
+
+Sample Email Logs — Manually uploaded raw email text files (no mail server integration)
 
 
 
 ---
 
+Project Summary
+
+This project simulates email-based phishing detection in a SOC environment by manually uploading raw email logs into Splunk and extracting key fields such as From, To, and Subject. The goal is to demonstrate log ingestion, field extraction, SPL query writing, and dashboard creation for SOC monitoring.
 
 
-\## 📌 Project Overview
+---
 
-In this lab, I simulated phishing email detection using Splunk.  
+Data Source
 
-I ingested sample email logs, extracted key fields (From, To, Subject), and built a dashboard to visualize suspicious email activity.
+Sample raw email logs with header-like lines, for example:
+
+From: suspicious@phishattack.com
+To: user@victim.com
+Subject: URGENT – Password Reset Required Immediately
+
+Logs were uploaded manually to Splunk as a text sourcetype.
 
 
+---
 
-This project demonstrates skills in:
+Steps Performed
 
-\- Log ingestion
+1) Add Raw Email Logs to Splunk
 
-\- Field extraction (regex)
+Uploaded sample email text file into Splunk via Add Data (File upload).
 
-\- Email header analysis
+Assigned a sourcetype (e.g., email_raw).
 
-\- Dashboard creation
 
-\- Threat detection concepts
+2) Extract Key Fields
+
+Used rex to parse and extract header fields from raw events:
+
+| rex field=_raw "From:\s(?<from>.*)"
+| rex field=_raw "To:\s(?<to>.*)"
+| rex field=_raw "Subject:\s(?<subject>.*)"
+
+3) Create SPL Queries
+
+Top phishing senders
+
+index=<your_index> sourcetype=email_raw
+| rex field=_raw "From:\s(?<from>.*)"
+| stats count by from
+| sort - count
+
+Top suspicious subject keywords
+
+index=<your_index> sourcetype=email_raw
+| rex field=_raw "Subject:\s(?<subject>.*)"
+| search subject="*password*" OR subject="*verify*" OR subject="*urgent*" OR subject="*reset*"
+| stats count by subject
+| sort - count
+
+4) Build Dashboard
+
+Created a simple dashboard with the following panels:
+
+Phishing Email Overview — raw events summary/timechart
+
+Top Email Senders — stats count by from
+
+Top Suspicious Subjects — keyword-based stats
+
+
+> Note: Alerting was not enabled due to Splunk Free/Trial limitations; dashboards were used for monitoring.
+
 
 
 
 ---
 
+Results
 
+Successfully ingested sample email data
 
-\## ✅ Objectives
+Parsed and extracted important header fields
 
-\- Ingest `.eml`-style email logs into Splunk
+Built a dashboard to monitor phishing indicators
 
-\- Extract important email fields
-
-\- Visualize trends \& suspicious senders
-
-\- Perform basic phishing investigation
-
-\- Build a reusable SOC dashboard
+Identified suspicious senders and subject trends
 
 
 
 ---
 
+Evidence / Screenshots
 
+Screenshots are stored in the screenshots/ folder and include:
 
-\## 🛠️ Steps Performed
+data_ingest.png — Splunk Add Data confirmation
 
-1\. Installed \& configured Splunk in Windows VM  
+field_extraction.png — rex extraction working on sample events
 
-2\. Uploaded phishing-sample email logs  
+sender_stats.png — Top sender results
 
-3\. Applied sourcetype `generic\_email`  
-
-4\. Extracted fields using `rex` (From, To, Subject)  
-
-5\. Built dashboard:  
-
-&nbsp;  - Phishing Email Overview (Table)  
-
-&nbsp;  - Top Senders (Bar Chart)  
-
-&nbsp;  - Top Suspicious Subjects (Pie Chart)  
-
-6\. Verified extracted fields on events  
-
-7\. Saved searches for alert simulation
+dashboard.png — Dashboard view with panels
 
 
 
 ---
 
+Limitations
 
+No real email server integration (manual ingestion only)
 
-\## 📊 Dashboard Preview
+Header-only analysis (no attachment or URL analysis in this iteration)
 
-Screenshots are in `/screenshots/`:
-
-
-
-\- `dashboard\_full.png` — full phishing dashboard  
-
-\- `email\_event\_detail.png` — raw event with extracted fields
+Alerting disabled/not available due to trial limitations
 
 
 
 ---
-
-
-
-\## 🔎 Key SPL Queries
-
-All queries are stored in `spl/queries.txt`.
-
-
-
-Example field extraction: 
-
-Phishing Email Detection - Project Summary
-
-Project Objective
-
-Simulated phishing email detection using Splunk as part of SOC analyst home lab setup.
-
-Tasks Performed
-
-Ingested sample phishing email logs into Splunk
-
-Extracted key email fields (From, To, Subject) using regex (rex SPL command)
-
-Created dashboards to visualize suspicious email patterns
-
-Built detection logic to identify phishing indicators
-
-Created alerts to notify on suspicious senders or subjects
-
-
-Key Skills Demonstrated
-
-Log ingestion and parsing
-
-Regex-based field extraction in Splunk
-
-Dashboard and visualization creation
-
-Alert rule creation
-
-Threat analysis and phishing investigation
-
-
-Techniques Used
-
-Splunk search queries
-
-rex command for field extraction
-
-Statistical functions and table formatting
-
-Dashboard XML UI builder
-
-Suspicious pattern identification
-
-
-Files Included
-
-File/Folder	Description
-
-queries.txt	All Splunk search queries used for detection and dashboarding
-screenshots/	Dashboard output and field extraction proof screenshots
-.gitignore	Ignore OS/editor logs and temporary files
-
-
-Result
-
-Successfully built a phishing detection dashboard in Splunk that highlights:
-
-Suspicious sender accounts
-
-Frequent phishing subjects
-
-Email traffic patterns related to phishing
-
-
